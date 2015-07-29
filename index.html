@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Forms and Form Fields</title>
+</head>
+<body>
+<h1>A JavaScript workbench</h1>
+
+  <textarea id="code">return "hi";</textarea>
+  <button id="button">Run</button>
+  <pre id="output"></pre>
+
+  <script>
+    var textField = document.querySelector('#code');
+    var button = document.querySelector('#button');
+    var output = document.querySelector('#output');
+    button.addEventListener('click', function() {
+      try{
+        var code = new Function(textField.value)();
+        output.innerText = String(code);
+      } catch(e) {
+        output.innerText = "Error: " + e;
+      }
+
+    })
+  </script>
+
+
+<h1>Autocompletion</h1>
+
+  <input type="text" id="field">
+  <div id="suggestions" style="cursor: pointer"></div>
+
+  <script>
+    var textField = document.querySelector("#field");
+    var suggestions = document.querySelector("#suggestions");
+
+    // Builds up an array with global variable names, like
+    // 'alert', 'document', and 'scrollTo'
+    var terms = [];
+    for (var name in window) {
+      terms.push(name);
+    }
+    textField.addEventListener("input", function() {
+      var matching = terms.filter(function(term) {
+        return term.indexOf(textField.value) == 0;
+      });
+      suggestions.textContent = "";
+      matching.slice(0, 20).forEach(function(term) {
+        var node = document.createElement("div");
+        if(textField.value.length > 0){
+          node.textContent = term;
+        } else {
+          node.textContent = '';
+        }
+
+        node.addEventListener("click", function() {
+          textField.value = term;
+          suggestions.textContent = "";
+        });
+        suggestions.appendChild(node);
+      });
+    });
+  </script>
+
+<h1>Conway’s Game of Life</h1>
+
+<div id="grid"></div>
+<button id="next">Next generation</button>
+<button id="reset">Reset</button>
+
+<script>
+  var width = 15, height = 15;
+  var grid = document.querySelector("#grid");
+  var checkboxes = [];
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
+      var box = document.createElement("input");
+      box.type = "checkbox";
+      grid.appendChild(box);
+      checkboxes.push(box);
+    }
+    grid.appendChild(document.createElement("br"));
+  }
+  function gridFromCheckboxes() {
+    return checkboxes.map(function(box) { return box.checked; });
+  }
+  function checkboxesFromGrid(grid) {
+    return grid.forEach(function(value, i) { checkboxes[i].checked = value; });
+  }
+  function randomGrid() {
+    var result = [];
+    for (var i = 0; i < width * height; i++)
+      result.push(Math.random() < 0.3);
+    return result;
+  }
+  checkboxesFromGrid(randomGrid());
+  function countNeighbors(grid, x, y) {
+    var count = 0;
+    for (var y1 = Math.max(0, y - 1); y1 <= Math.min(height - 1, y + 1); y1++) {
+      for (var x1 = Math.max(0, x - 1); x1 <= Math.min(width - 1, x + 1); x1++) {
+        if ((x1 != x || y1 != y) && grid[x1 + y1 * width])
+          count += 1;
+      }
+    }
+    return count;
+  }
+  function nextGeneration(grid) {
+    var newGrid = new Array(width * height);
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        var neighbors = countNeighbors(grid, x, y);
+        var offset = x + y * width;
+        if (neighbors < 2 || neighbors > 3)
+          newGrid[offset] = false;
+        else if (neighbors == 2)
+          newGrid[offset] = grid[offset];
+        else
+          newGrid[offset] = true;
+      }
+    }
+    return newGrid;
+  }
+  function turn() {
+    checkboxesFromGrid(nextGeneration(gridFromCheckboxes()));
+  }
+  function reset() {
+    checkboxesFromGrid(randomGrid());
+  }
+  document.querySelector("#next").addEventListener("click", turn);
+  document.querySelector("#reset").addEventListener("click", reset);
+
+</script>
+</body>
+</html>
